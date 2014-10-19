@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import hashlib
 from orderedset import OrderedSet
 from sets import Set
 def help():
@@ -15,6 +16,7 @@ def die(msg):
     quit()
 
 def loadBssid(fh):
+    fh.seek(0)
     os = Set()
     cnt=0
     for line in fh:
@@ -30,6 +32,7 @@ def loadBssid(fh):
     return os
 
 def loadFull(fh):
+    fh.seek(0)
     os = Set()
     cnt=0
     for line in fh:
@@ -40,6 +43,23 @@ def loadFull(fh):
        try:
           line = line.strip()
           os.add(line)
+       except:
+          pass
+    return os
+
+def loadToHash(fh):
+    fh.seek(0)
+    os=dict()
+    cnt=0
+    for line in fh: 
+       cnt+=1
+       if (cnt < 2):
+           continue
+       #%bssid   lat     lon
+       try:
+          line = line.strip()
+          (bssid,lat,lon) = line.split("\t")
+          os[bssid] = hashlib.md5(line).hexdigest()
        except:
           pass
     return os
@@ -71,15 +91,27 @@ def main():
     file1_set.clear()
     file2_set.clear()
 
+    
     print "INFO:Search modify"
-    print "INFO:load full"+sys.argv[1]
-    file1_set = loadFull(file1)
-    print "INFO:load full"+sys.argv[2]
-    file2_set = loadFull(file2)
-    print "INFO:loading done"
-    modi = file2_set - file1_set
-    for item in modi:
-        print "MOD:{}".format(item)
+    print "INFO:load to Hash:"+sys.argv[1]
+    file1_dict = loadToHash(file1)
+    cnt=0
+    file2.seek(0)
+    for line in file2:
+       cnt+=1
+       if (cnt < 2):
+           continue
+       try:
+          line = line.strip()
+          (bssid,lat,lon) = line.split("\t")
+          hashline = hashlib.md5(line).hexdigest()
+          if (file1_dict[bssid] == hashline ):
+              continue
+          print "UPD:{}".format(line)
+       except:
+          pass
+    
+    print "INFO:Finish"
 
 if  __name__ ==  "__main__" :
     main()
