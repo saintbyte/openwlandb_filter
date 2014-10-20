@@ -64,6 +64,22 @@ def loadToHash(fh):
           pass
     return os
 
+def showNewAPs(fh,new_os):
+    fh.seek(0)
+    cnt=0
+    for line in fh: 
+       cnt+=1
+       if (cnt < 2):
+           continue
+       try:
+          line = line.strip()
+          (bssid,lat,lon) = line.split("\t")
+          if (bssid in new_os):
+             print "NEW:{}".format(line)
+       except:
+          pass
+
+
 def main():
     if (len(sys.argv) < 3):
         help()
@@ -84,8 +100,7 @@ def main():
     print "INFO:loading done"
     new = file2_set - file1_set
     deleted = file1_set - file2_set
-    for item in new:
-        print "NEW:{}".format(item)
+    showNewAPs(file2,new)
     for item in deleted:
         print "DEL:{}".format(item)
     file1_set.clear()
